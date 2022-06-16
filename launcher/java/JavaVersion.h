@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QJsonObject>
 #include <QString>
 
 // NOTE: apparently the GNU C library pollutes the global namespace with these... undef them.
@@ -25,7 +26,8 @@ public:
 
     bool requiresPermGen();
 
-    QString toString();
+    QString toString() const;
+    QJsonObject toJsonObject() const;
 
     int major()
     {

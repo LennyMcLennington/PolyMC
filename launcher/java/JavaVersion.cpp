@@ -42,9 +42,19 @@ JavaVersion::JavaVersion(const QString &rhs)
     operator=(rhs);
 }
 
-QString JavaVersion::toString()
+QString JavaVersion::toString() const
 {
     return m_string;
+}
+
+QJsonObject JavaVersion::toJsonObject() const
+{
+    QJsonObject o;
+    o["major"] = m_major;
+    o["minor"] = m_minor;
+    o["security"] = m_security;
+    o["prerelease"] = m_prerelease;
+    return o;
 }
 
 bool JavaVersion::requiresPermGen()

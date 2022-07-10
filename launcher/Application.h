@@ -48,6 +48,7 @@
 #endif
 
 #include <BaseInstance.h>
+#include <java/JavaSettings.h>
 
 #include "minecraft/launch/MinecraftServerTarget.h"
 
@@ -234,6 +235,7 @@ private:
     shared_qobject_ptr<Meta::Index> m_metadataIndex;
 
     std::shared_ptr<SettingsObject> m_settings;
+    std::shared_ptr<JavaSettings> m_javasettings;
     std::shared_ptr<InstanceList> m_instances;
     std::shared_ptr<IconList> m_icons;
     std::shared_ptr<JavaInstallList> m_javalist;

@@ -408,6 +408,10 @@ set(JAVA_SOURCES
     java/JavaInstall.cpp
     java/JavaInstallList.h
     java/JavaInstallList.cpp
+    java/JavaSettings.h
+    java/JavaSettings.cpp
+    java/JavaSettingsModel.h
+    java/JavaSettingsModel.cpp
     java/JavaRuntime.h
     java/JavaRuntime.cpp
     java/JavaUtils.h
@@ -714,6 +718,8 @@ SET(LAUNCHER_SOURCES
     ui/pages/global/ExternalToolsPage.h
     ui/pages/global/JavaPage.cpp
     ui/pages/global/JavaPage.h
+    ui/pages/global/NewJavaPage.cpp
+    ui/pages/global/NewJavaPage.h
     ui/pages/global/LanguagePage.cpp
     ui/pages/global/LanguagePage.h
     ui/pages/global/MinecraftPage.cpp
@@ -905,6 +911,7 @@ qt_wrap_ui(LAUNCHER_UI
     ui/setupwizard/PasteWizardPage.ui
     ui/pages/global/AccountListPage.ui
     ui/pages/global/JavaPage.ui
+    ui/pages/global/NewJavaPage.ui
     ui/pages/global/LauncherPage.ui
     ui/pages/global/APIPage.ui
     ui/pages/global/ProxyPage.ui

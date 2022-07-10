@@ -17,6 +17,9 @@
  */
 
 #include "JavaRuntime.h"
+#include "JavaChecker.h"
+
+#include <QFile>
 
 #include <Json.h>
 
@@ -34,16 +37,17 @@ QJsonObject JavaRuntime::saveState() const
     o["vendor"] = vendor;
 
     o["added"] = added.toString(Qt::ISODate);
-    if (!lastSeen.isNull())
+    o["modified"] = modified.toString(Qt::ISODate);
+    if (lastSeen.isValid())
         o["lastSeen"] = lastSeen.toString(Qt::ISODate);
-    if (!lastUsed.isNull())
+    if (lastUsed.isValid())
         o["lastUsed"] = lastUsed.toString(Qt::ISODate);
     return o;
 }
 
-bool JavaRuntime::resumeState(QJsonObject data)
+void JavaRuntime::resumeState(QJsonObject data)
 {
-    uuid = QUuid::fromString(Json::requireString(data, "uuid"));
+    uuid = Json::requireUuid(data, "uuid");
     name = Json::requireString(data, "name");
     enabled = Json::requireBoolean(data, "enabled");
 
@@ -52,10 +56,9 @@ bool JavaRuntime::resumeState(QJsonObject data)
     architecture = Json::requireString(data, "architecture");
     vendor = Json::requireString(data, "vendor");
 
-    // Are these null if they fail to parse?
-    added = QDateTime::fromString(Json::requireString(data, "added"), Qt::ISODate);
-    lastSeen = QDateTime::fromString(Json::requireString(data, "lastSeen"), Qt::ISODate);
-    lastUsed = QDateTime::fromString(Json::requireString(data, "lastUsed"), Qt::ISODate);
-
-    return true;
+    // These are invalid if they fail to parse, so .isValid() would return false if it failed:
+    added = Json::ensureDateTime(data, "added");
+    modified = Json::ensureDateTime(data, "modified");
+    lastSeen = Json::ensureDateTime(data, "lastSeen");
+    lastUsed = Json::ensureDateTime(data, "lastUsed");
 }

@@ -2,6 +2,7 @@
 /*
  *  PolyMC - Minecraft Launcher
  *  Copyright (C) 2022 Sefa Eyeoglu <contact@scrumplex.net>
+ *  Copyright (C) 2022 Lenny McLennington <lenny@sneed.church>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,12 +23,27 @@
 #include <QObject>
 #include <QUuid>
 #include <QJsonObject>
-#include "Usable.h"
-#include "java/JavaVersion.h"
 
-struct JavaRuntime {
+#include <memory>
+
+#include "JavaVersion.h"
+
+struct JavaRuntime
+{
+public:
+    /**
+     * @brief Converts the data in the JavaRuntime object into a QJsonObject
+     * @return A QJsonObject representing the JavaRuntime object
+     */
     QJsonObject saveState() const;
-    bool resumeState(QJsonObject data);
+    /**
+     * @brief Loads the data from a QJsonObject into the JavaRuntime object
+     * @param data The QJsonObject containing the data to be loaded
+     * @throw Json::JsonException
+     */
+    void resumeState(QJsonObject data);
+
+    void updateMetadata();
 
     QUuid uuid;
     QString name;
@@ -39,6 +55,7 @@ struct JavaRuntime {
     QString vendor;
 
     QDateTime added;
+    QDateTime modified;
     QDateTime lastSeen;
     QDateTime lastUsed;
 };

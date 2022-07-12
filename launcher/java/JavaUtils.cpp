@@ -186,7 +186,7 @@ QStringList addJavasFromEnv(QList<QString> javas)
 }
 
 #if defined(Q_OS_WIN32)
-QList<JavaInstallPtr> JavaUtils::FindJavaFromRegistryKey(DWORD keyType, QString keyName, QString keyJavaDir, QString subkeySuffix)
+QList<JavaInstallPtr> JavaUtils::FindJavaFromRegistryKey(DWORD keyType, QString keyName, QString keyJavaDir, QString subKeySuffix)
 {
     QList<JavaInstallPtr> javas;
 
@@ -200,61 +200,51 @@ QList<JavaInstallPtr> JavaUtils::FindJavaFromRegistryKey(DWORD keyType, QString 
     if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, keyName.toStdWString().c_str(), 0,
                       KEY_READ | keyType | KEY_ENUMERATE_SUB_KEYS, &jreKey) == ERROR_SUCCESS)
     {
+        // Converting the QString to a wide string that can be passed to Windows API functions.
+        // Doing it here so it's not constructing multiple temporary std::wstring on every iteration of the loop.
+        std::wstring keyJavaDirWide = keyJavaDir.toStdWString();
+
         // Read the current type version from the registry.
         // This will be used to find any key that contains the JavaHome value.
-        TCHAR *value = new TCHAR[0];
-        DWORD valueSz = 0;
-
-        TCHAR subKeyName[255];
-        DWORD subKeyNameSize, numSubKeys, retCode;
+        DWORD numSubKeys;
 
         // Get the number of subkeys
-        RegQueryInfoKeyW(jreKey, NULL, NULL, NULL, &numSubKeys, NULL, NULL, NULL, NULL, NULL,
-                        NULL, NULL);
+        RegQueryInfoKeyW(jreKey, NULL, NULL, NULL, &numSubKeys, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
-        // Iterate until RegEnumKeyEx fails
-        if (numSubKeys > 0)
+        for (DWORD i = 0; i < numSubKeys; i++)
         {
-            for (DWORD i = 0; i < numSubKeys; i++)
+            WCHAR subKeyNameWide[255];
+            DWORD subKeyNameWideSz = sizeof(subKeyName) / sizeof(*subKeyName);
+            if (RegEnumKeyExW(jreKey, i, subKeyNameWide, &subKeyNameWideSz, NULL, NULL, NULL, NULL) == ERROR_SUCCESS)
             {
-                subKeyNameSize = 255;
-                retCode = RegEnumKeyExW(jreKey, i, subKeyName, &subKeyNameSize, NULL, NULL, NULL,
-                                        NULL);
-                QString newSubkeyName = QString::fromWCharArray(subKeyName);
-                if (retCode == ERROR_SUCCESS)
+                QString subKeyName = QString::fromWCharArray(subKeyNameWide);
+
+                // The path to the key that has the info we need.
+                QString keyPath = subKeyName + subKeySuffix;
+                HKEY javaInfoKey;
+                if (RegOpenKeyExW(jreKey, keyPath, 0, KEY_READ | KEY_WOW64_64KEY, &javaInfoKey) == ERROR_SUCCESS)
                 {
-                    // Now open the registry key for the version that we just got.
-                    QString newKeyName = keyName + "\\" + newSubkeyName + subkeySuffix;
+                    // Read the JavaHome value to find where Java is installed.
+                    DWORD valueSz = 0;
 
-                    HKEY newKey;
-                    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, newKeyName.toStdWString().c_str(), 0,
-                                      KEY_READ | KEY_WOW64_64KEY, &newKey) == ERROR_SUCCESS)
+                    if (RegQueryValueExW(javaInfoKey, keyJavaDirWide.c_str(), NULL, NULL, NULL,
+                                         &valueSz) == ERROR_SUCCESS && valueSz != 0)
                     {
-                        // Read the JavaHome value to find where Java is installed.
-                        delete [] value;
-                        value = new TCHAR[0];
-                        valueSz = 0;
-                        if (RegQueryValueExW(newKey, keyJavaDir.toStdWString().c_str(), NULL, NULL, (BYTE *)value,
-                                             &valueSz) == ERROR_MORE_DATA)
-                        {
-                            value = new TCHAR[valueSz];
-                            RegQueryValueExW(newKey, keyJavaDir.toStdWString().c_str(), NULL, NULL, (BYTE *)value,
-                                             &valueSz);
+                        std::unique_ptr<WCHAR[]> javaHomeValueWide{new WCHAR[valueSz]};
+                        RegQueryValueExW(javaInfoKey, keyJavaDirWide.c_str(), NULL, NULL, (BYTE *)javaHomeValueWide, &valueSz);
 
-                            QString newValue = QString::fromWCharArray(value);
+                        QString javaHomeValue = QString::fromWCharArray(javaHomeValueWide);
 
-                            // Now, we construct the version object and add it to the list.
-                            JavaInstallPtr javaVersion(new JavaInstall());
+                        // Now, we construct the version object and add it to the list.
+                        JavaInstallPtr javaVersion(new JavaInstall());
 
-                            javaVersion->id = newSubkeyName;
-                            javaVersion->arch = archType;
-                            javaVersion->path =
-                                QDir(FS::PathCombine(newValue, "bin")).absoluteFilePath("javaw.exe");
-                            javas.append(javaVersion);
-                        }
-
-                        RegCloseKey(newKey);
+                        javaVersion->id = QString::fromWCharArray(subKeyName);
+                        javaVersion->arch = archType;
+                        javaVersion->path = QDir(FS::PathCombine(value, "bin")).absoluteFilePath("javaw.exe");
+                        javas.append(javaVersion);
                     }
+
+                    RegCloseKey(javaInfoKey);
                 }
             }
         }

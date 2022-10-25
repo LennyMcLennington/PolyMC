@@ -99,7 +99,7 @@ auto ModpackListModel::data(const QModelIndex& index, int role) const -> QVarian
             return v;
         }
         case Qt::SizeHintRole:
-            return QSize(0, 58);
+            return QSize(0, 60);
         // Custom data
         case UserDataTypes::TITLE:
             return pack.name;

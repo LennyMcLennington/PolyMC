@@ -49,15 +49,14 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
     }
 
     // Change the rect so that funther painting is easier
+    auto title = index.data(UserDataTypes::TITLE).toString();
+    qDebug() << "ProjectItemDelegate::paint() for" << title;
+    qDebug() << " Base rect:" << rect;
     auto remaining_width = rect.width() - icon_width - 2 * icon_x_margin;
-    rect.setRect(rect.x() + icon_width + 2 * icon_x_margin, rect.y(), remaining_width, rect.height());
-
-    qDebug() << "ProjectItemDelegate::paint";
-    qDebug() << " Rect y: " << rect.y();
-    qDebug() << " Rect height: " << rect.height();
+    rect.setRect(rect.x() + icon_width + 2 * icon_x_margin, rect.y() + 4, remaining_width, rect.height() - 4);
+    qDebug() << " Base rect after adjustment:" << rect;
 
     {  // Title painting
-        auto title = index.data(UserDataTypes::TITLE).toString();
 
         painter->save();
 
@@ -71,12 +70,14 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
         font.setPointSize(font.pointSize() + 2);
         painter->setFont(font);
 
-        qDebug() << " Title height: " << QFontMetrics(font).height();
-        qDebug() << " Calculated y: " << rect.y() + QFontMetrics(font).height();
+        QFontMetrics fontMetrics{font};
 
+        qDebug() << " Title height:" << fontMetrics.height();
+        QRect titleRect(rect.topLeft() + QPoint(0, fontMetrics.ascent() - fontMetrics.height()), QSize(rect.width(), fontMetrics.height()));
+        rect.setTop(titleRect.bottom());
+        qDebug() << " Title rect:" << titleRect;
         // On the top, aligned to the left after the icon
-        painter->drawText(rect.x(), rect.y() + QFontMetrics(font).height(), title);
-
+        painter->drawText(titleRect, title, QTextOption(Qt::AlignTop));
         painter->restore();
     }
 
@@ -98,12 +99,11 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
                 description += cut_text.at(1).second;
         }
 
-        qDebug() << " Description height: " << opt.fontMetrics.height();
-        qDebug() << " Calculated y: " << rect.y() + rect.height() - 2.2 * opt.fontMetrics.height();
-
         // On the bottom, aligned to the left after the icon, and featuring at most two lines of text (with some margin space to spare)
-        painter->drawText(rect.x(), rect.y() + rect.height() - 2.2 * opt.fontMetrics.height(), remaining_width,
-                          2 * opt.fontMetrics.height(), Qt::TextWordWrap, description);
+        QRect descriptionRect = rect;
+        qDebug() << "Description height:" << opt.fontMetrics.height();
+        qDebug() << "Description rect:" << descriptionRect;
+        painter->drawText(descriptionRect, Qt::TextWordWrap, description);
     }
 
     painter->restore();

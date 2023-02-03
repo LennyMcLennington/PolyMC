@@ -1,9 +1,9 @@
 #include "JavaSettingsModel.h"
 
-JavaSettingsModel::JavaSettingsModel(const std::map<int, std::vector<std::shared_ptr<JavaRuntime>>> &runtimes, QObject* parent)
-    : QAbstractItemModel(parent), m_runtimes{ runtimes }
+JavaSettingsModel::JavaSettingsModel(JavaSettings& javaSettings, QObject* parent)
+    : QAbstractItemModel(parent), m_javaSettings{ javaSettings }
 {
-    for (const auto& [majorVersion, runtimeVector] : m_runtimes) {
+    for (const auto& [majorVersion, runtimeVector] : javaSettings.m_runtimes) {
         categories.emplace_back(std::make_unique<Node>(
             Node{ Node::CategoryInfo{ majorVersion }, static_cast<int>(categories.size()), nullptr }));
         for (auto& runtime : runtimeVector) {

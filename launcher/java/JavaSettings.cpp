@@ -48,6 +48,7 @@ void JavaSettings::resumeState(QJsonObject o)
 
     if (formatVersion != 1)
         /* FIXME: Not sure how I should handle this. */;
+    clear();
 
     QJsonArray runtimes = Json::requireArray(o, "runtimes");
     for (const auto &runtimeJsonVal : qAsConst(runtimes))
@@ -63,5 +64,7 @@ void JavaSettings::resumeState(QJsonObject o)
 void JavaSettings::insertRuntime(int index, JavaRuntime runtime)
 {
     auto &runtimeVec = m_runtimes[runtime.version.major()];
-    runtimeVec.insert(runtimeVec.begin() + index, std::make_shared<JavaRuntime>(runtime));
+    auto runtime_ptr = std::make_shared<JavaRuntime>(runtime);
+    runtimeVec.insert(runtimeVec.begin() + index, runtime_ptr);
+    emit runtimeInserted(runtime.version.major(), index, runtime);
 }

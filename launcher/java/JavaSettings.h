@@ -36,6 +36,11 @@ public:
 
     void insertRuntime(int index, JavaRuntime runtime);
     void appendRuntime(JavaRuntime runtime) { insertRuntime(m_runtimes[runtime.version.major()].size(), runtime); };
+    void clear()
+    {
+        m_runtimes.clear();
+        emit cleared();
+    }
     void removeRuntime(int major, int index);
     std::weak_ptr<const JavaRuntime> getRuntime(QUuid uuid)
     {
@@ -49,6 +54,10 @@ public:
         }
         return std::weak_ptr<const JavaRuntime>{};
     }
+signals:
+    void runtimeInserted(int major, int index, JavaRuntime& runtime);
+    void runtimeRemoved(int major, int index, JavaRuntime& runtime);
+    void cleared();
 private:
     JavaCheckerJobPtr m_javaCheckerJob;
     QString m_path;

@@ -38,7 +38,7 @@ class JavaSettingsModel : public QAbstractItemModel
     bool removeColumns(int column, int count, const QModelIndex& parent = QModelIndex()) override;
 
    private:
-    const std::map<int, std::vector<std::shared_ptr<JavaRuntime>>>& m_javaSettings;
+    JavaSettings& m_javaSettings;
     //const std::map<int, std::vector<std::shared_ptr<JavaRuntime>>>& m_runtimes;
     enum Columns {
         Version,

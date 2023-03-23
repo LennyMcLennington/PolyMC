@@ -29,7 +29,7 @@ class JavaSettings : public QObject
 {
     Q_OBJECT
 public:
-    JavaSettings(QString filePath);
+    JavaSettings(QString filePath = QString());
 
     QJsonObject saveState();
     void resumeState(QJsonObject);
@@ -55,8 +55,8 @@ public:
         return std::weak_ptr<const JavaRuntime>{};
     }
 signals:
-    void runtimeInserted(int major, int index, JavaRuntime& runtime);
-    void runtimeRemoved(int major, int index, JavaRuntime& runtime);
+    void runtimeInserted(int major, int index, std::shared_ptr<JavaRuntime> runtime);
+    void runtimeRemoved(int major, int index, std::shared_ptr<JavaRuntime> runtime);
     void cleared();
 private:
     JavaCheckerJobPtr m_javaCheckerJob;

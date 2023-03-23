@@ -66,5 +66,5 @@ class JavaSettingsModel : public QAbstractItemModel
         Node *parent;
         std::vector<std::unique_ptr<Node>> children;
     };
-    std::vector<std::unique_ptr<Node>> categories;
+    std::unordered_map<int, std::unique_ptr<Node>> categories;
 };

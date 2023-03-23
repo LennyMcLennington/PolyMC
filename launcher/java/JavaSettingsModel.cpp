@@ -4,16 +4,20 @@ JavaSettingsModel::JavaSettingsModel(JavaSettings& javaSettings, QObject* parent
     : QAbstractItemModel(parent), m_javaSettings{ javaSettings }
 {
     for (const auto& [majorVersion, runtimeVector] : javaSettings.m_runtimes) {
-        categories.emplace_back(std::make_unique<Node>(
+        categories.emplace(majorVersion, std::make_unique<Node>(
             Node{ Node::CategoryInfo{ majorVersion }, static_cast<int>(categories.size()), nullptr }));
         for (auto& runtime : runtimeVector) {
-            categories.back()->children.emplace_back(std::make_unique<Node>(Node{
+            categories[majorVersion]->children.emplace_back(std::make_unique<Node>(Node{
                 Node::RuntimeInfo{ runtime },
-                static_cast<int>(categories.back()->children.size()),
-                categories.back().get(),
+                static_cast<int>(categories[majorVersion]->children.size()),
+                categories[majorVersion].get(),
             }));
         }
     }
+
+    connect(&m_javaSettings, &JavaSettings::runtimeInserted, this,
+            [](int major, int index, JavaRuntime& runtime) { categories[major]->children.insert(index, runtime);
+    });
 }
 
 QVariant JavaSettingsModel::headerData(int section, Qt::Orientation orientation, int role) const

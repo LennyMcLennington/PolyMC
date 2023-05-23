@@ -34,14 +34,14 @@ public:
     QJsonObject saveState();
     void resumeState(QJsonObject);
 
-    void insertRuntime(int index, JavaRuntime runtime);
+    void insertRuntime(int index, JavaRuntime runtime, bool emitSignal = true);
     void appendRuntime(JavaRuntime runtime) { insertRuntime(m_runtimes[runtime.version.major()].size(), runtime); };
     void clear()
     {
         m_runtimes.clear();
         emit cleared();
     }
-    void removeRuntime(int major, int index);
+    void removeRuntime(int major, int index, bool emitSignal = true);
     std::weak_ptr<const JavaRuntime> getRuntime(QUuid uuid)
     {
         for (const auto &[majorVersion, list] : std::as_const(m_runtimes))

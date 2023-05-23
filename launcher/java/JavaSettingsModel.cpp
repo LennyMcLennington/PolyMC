@@ -15,8 +15,8 @@ JavaSettingsModel::JavaSettingsModel(JavaSettings& javaSettings, QObject* parent
         }
     }
 
-    connect(&m_javaSettings, &JavaSettings::runtimeInserted, this,
-            [](int major, int index, JavaRuntime& runtime) { categories[major]->children.insert(index, runtime);
+    connect(&m_javaSettings, &JavaSettings::runtimeInserted, this, [this](int major, int index, std::shared_ptr<JavaRuntime> runtime) {
+
     });
 }
 
@@ -47,7 +47,7 @@ QModelIndex JavaSettingsModel::index(int row, int column, const QModelIndex &par
 {
     if (!parent.isValid() && static_cast<int>(categories.size()) > row)
     {
-        return createIndex(row, column, static_cast<void *>(categories.at(row).get()));
+        return createIndex(row, column, static_cast<void *>(std::next(categories.begin(), row)->second.get()));
     }
     else
     {
@@ -124,31 +124,13 @@ QVariant JavaSettingsModel::data(const QModelIndex &index, int role) const
 bool JavaSettingsModel::insertRows(int row, int count, const QModelIndex &parent)
 {
     beginInsertRows(parent, row, row + count - 1);
-    // FIXME: Implement me!
     endInsertRows();
-    return true;
-}
-
-bool JavaSettingsModel::insertColumns(int column, int count, const QModelIndex &parent)
-{
-    beginInsertColumns(parent, column, column + count - 1);
-    // FIXME: Implement me!
-    endInsertColumns();
     return true;
 }
 
 bool JavaSettingsModel::removeRows(int row, int count, const QModelIndex &parent)
 {
     beginRemoveRows(parent, row, row + count - 1);
-    // FIXME: Implement me!
     endRemoveRows();
-    return true;
-}
-
-bool JavaSettingsModel::removeColumns(int column, int count, const QModelIndex &parent)
-{
-    beginRemoveColumns(parent, column, column + count - 1);
-    // FIXME: Implement me!
-    endRemoveColumns();
     return true;
 }

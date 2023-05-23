@@ -19,9 +19,7 @@
 #include "JavaSettings.h"
 #include <Json.h>
 
-JavaSettings::JavaSettings(QString filePath) : m_path{filePath}
-{
-}
+JavaSettings::JavaSettings(QString filePath) : m_path{ filePath } {}
 
 QJsonObject JavaSettings::saveState()
 {
@@ -30,10 +28,8 @@ QJsonObject JavaSettings::saveState()
     o["formatVersion"] = 1;
 
     QJsonArray runtimes;
-    for (const auto &[majorVersion, list] : m_runtimes)
-    {
-        for (const auto &runtime : list)
-        {
+    for (const auto& [majorVersion, list] : m_runtimes) {
+        for (const auto& runtime : list) {
             runtimes.append(runtime->saveState());
         }
     }
@@ -51,8 +47,7 @@ void JavaSettings::resumeState(QJsonObject o)
     clear();
 
     QJsonArray runtimes = Json::requireArray(o, "runtimes");
-    for (const auto &runtimeJsonVal : qAsConst(runtimes))
-    {
+    for (const auto& runtimeJsonVal : qAsConst(runtimes)) {
         QJsonObject runtimeJsonObject = Json::requireObject(runtimeJsonVal);
         JavaRuntime runtime;
         runtime.resumeState(runtimeJsonObject);
@@ -61,16 +56,21 @@ void JavaSettings::resumeState(QJsonObject o)
     }
 }
 
-void JavaSettings::insertRuntime(int index, JavaRuntime runtime)
+void JavaSettings::insertRuntime(int index, JavaRuntime runtime, bool emitSignal)
 {
-    auto &runtimeVec = m_runtimes[runtime.version.major()];
+    auto& runtimeVec = m_runtimes[runtime.version.major()];
     auto runtime_ptr = std::make_shared<JavaRuntime>(runtime);
     runtimeVec.insert(runtimeVec.begin() + index, runtime_ptr);
-    emit runtimeInserted(runtime.version.major(), index, runtime_ptr);
+    if (emitSignal) {
+        emit runtimeInserted(runtime.version.major(), index, runtime_ptr);
+    }
 }
 
-void JavaSettings::removeRuntime(int majorVersion, int index)
+void JavaSettings::removeRuntime(int majorVersion, int index, bool emitSignal)
 {
-    emit runtimeRemoved(majorVersion, index, m_runtimes[majorVersion].at(index));
+    auto runtime = m_runtimes[majorVersion].at(index);
     m_runtimes[majorVersion].erase(std::next(m_runtimes[majorVersion].begin(), index));
+    if (emitSignal) {
+        emit runtimeRemoved(majorVersion, index, runtime);
+    }
 }
